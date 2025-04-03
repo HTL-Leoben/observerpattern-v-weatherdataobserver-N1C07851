@@ -10,17 +10,11 @@ import java.util.Random;
 public class WeatherDataSimulator {
 
     private List<WeatherDataObserver> visualizers;
-    private WeatherVisualizer visualizer;
     private Random random;
     private double lastTemperature;
     private int intervalMinutes;
     private LocalDateTime lastTimestamp;
     private Season currentSeason;
-
-    private WeatherCondition condition;
-    private double temperature;
-    private Season season;
-    private int rainPropability;
 
     // Enum für Jahreszeiten bleibt unverändert
     public enum Season {
@@ -56,16 +50,9 @@ public class WeatherDataSimulator {
 
         this.lastTimestamp = LocalDateTime.of(startDate.getYear(), startDate.getMonth(), startDate.getDayOfMonth(),0,0);
         this.currentSeason = Season.getCurrentSeason(lastTimestamp);
-        this.condition = generateWeatherCondition(this.lastTimestamp ,this.currentSeason);
 
         this.random = new Random();
         this.intervalMinutes = intervalMinutes;
-
-        this.season = Season.getCurrentSeason(lastTimestamp);
-        this.temperature = getInitialTemperatureForSeason(season);
-
-        this.rainPropability = calculateRainProbability(this.condition, this.season, this.temperature);
-
         this.lastTemperature = getInitialTemperatureForSeason(currentSeason);
         startWeatherDataSimulation();
     }
@@ -78,10 +65,9 @@ public class WeatherDataSimulator {
         this.visualizers.remove(observer);
     }
 
-    private void notifyObserver() {
+    private void notifyObserver(WeatherData currentWeatherData) {
         for (WeatherDataObserver observer : visualizers) {
-            CurrentWeatherData weatherData = new CurrentWeatherData(this.temperature, this.rainPropability, this.condition, this.lastTimestamp);
-            observer.update(weatherData);
+            observer.update(currentWeatherData);
         }
     }
 
@@ -166,7 +152,8 @@ public class WeatherDataSimulator {
             @Override
             public void handle(long now) {
                 if (now - lastUpdate >= 2_000_000_000L) {
-                    notifyObserver();
+                    WeatherData currentWeatherData = generateRealisticWeatherData();
+                    notifyObserver(currentWeatherData);
                     lastUpdate = now;
                 }
             }
@@ -177,48 +164,48 @@ public class WeatherDataSimulator {
     private WeatherData generateRealisticWeatherData() {
         // Restliche Implementierung bleibt unverändert
         LocalDateTime newTimestamp = lastTimestamp.plusMinutes(intervalMinutes);
-        this.season = Season.getCurrentSeason(newTimestamp);
+        Season season = Season.getCurrentSeason(newTimestamp);
 
-        this.condition = generateWeatherCondition(newTimestamp, this.season);
+        WeatherCondition condition = generateWeatherCondition(newTimestamp, season);
 
-        double temperatureChange = calculateTemperatureChange(this.condition, newTimestamp, this.season);
-        this.temperature = lastTemperature + temperatureChange;
+        double temperatureChange = calculateTemperatureChange(condition, newTimestamp, season);
+        double temperature = lastTemperature + temperatureChange;
 
         // Temperatur nach Saisonbereichen beschränken
-        switch (this.season) {
+        switch (season) {
             case WINTER:
-                this.temperature = Math.max(-15, Math.min(15, this.temperature));
+                temperature = Math.max(-15, Math.min(15, temperature));
                 break;
             case SUMMER:
-                this.temperature = Math.max(15, Math.min(45, this.temperature));
+                temperature = Math.max(15, Math.min(45, temperature));
                 break;
             case SPRING:
             case AUTUMN:
-                this.temperature = Math.max(5, Math.min(25, this.temperature));
+                temperature = Math.max(5, Math.min(25, temperature));
                 break;
         }
 
-        this.rainPropability = calculateRainProbability(this.condition, this.season, this.temperature);
+        int rainProbability = calculateRainProbability(condition, season, temperature);
 
         // Restliche Wetterdaten-Logik bleibt unverändert
-        if (this.condition == WeatherCondition.SNOW && this.temperature > 2.0) {
-            this.condition = WeatherCondition.CLOUDY;
+        if (condition == WeatherCondition.SNOW && temperature > 2.0) {
+            condition = WeatherCondition.CLOUDY;
         }
 
-        if (this.temperature < 3.0) {
-            this.condition = (random.nextDouble() < 0.5) ? WeatherCondition.SNOW : WeatherCondition.CLOUDY;
+        if (temperature < 3.0) {
+            condition = (random.nextDouble() < 0.5) ? WeatherCondition.SNOW : WeatherCondition.CLOUDY;
         }
 
         CurrentWeatherData weatherData = new CurrentWeatherData(
-                this.temperature,
-                this.rainPropability,
-                this.condition,
+                temperature,
+                rainProbability,
+                condition,
                 newTimestamp
         );
 
-        lastTemperature = this.temperature;
+        lastTemperature = temperature;
         lastTimestamp = newTimestamp;
-        currentSeason = this.season;
+        currentSeason = season;
 
         return weatherData;
     }

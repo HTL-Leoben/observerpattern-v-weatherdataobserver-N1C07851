@@ -108,7 +108,4 @@ public class WeatherVisualizer implements WeatherDataObserver {
     public VBox getRoot() {
         return root;
     }
-
-
-
 }
