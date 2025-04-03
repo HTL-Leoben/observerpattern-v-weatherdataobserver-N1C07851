@@ -11,7 +11,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
-public class WeatherVisualizer {
+public class WeatherVisualizer implements WeatherDataObserver {
     private XYChart.Series<Number, Number> temperatureSeries;
     private LineChart<Number, Number> lineChart;
     private NumberAxis xAxis;
@@ -73,8 +73,8 @@ public class WeatherVisualizer {
         // Root-Layout erstellen
         root = new VBox(10, lineChart, temperatureLabel, conditionLabel, timeLabel, weatherIconView);
     }
-
-    public void updateWeatherVisualization(WeatherData weatherData) {
+    @Override
+    public void update(WeatherData weatherData) {
         Platform.runLater(() -> {
             dataPointCounter++;
 
@@ -104,9 +104,11 @@ public class WeatherVisualizer {
         });
     }
 
+    @Override
     public VBox getRoot() {
         return root;
     }
+
 
 
 }

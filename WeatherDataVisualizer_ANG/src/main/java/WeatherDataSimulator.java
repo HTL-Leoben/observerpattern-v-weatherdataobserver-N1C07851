@@ -3,16 +3,24 @@ import javafx.animation.AnimationTimer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 
 public class WeatherDataSimulator {
 
+    private List<WeatherDataObserver> visualizers;
     private WeatherVisualizer visualizer;
     private Random random;
     private double lastTemperature;
     private int intervalMinutes;
     private LocalDateTime lastTimestamp;
     private Season currentSeason;
+
+    private WeatherCondition condition;
+    private double temperature;
+    private Season season;
+    private int rainPropability;
 
     // Enum für Jahreszeiten bleibt unverändert
     public enum Season {
@@ -43,14 +51,42 @@ public class WeatherDataSimulator {
     }
 
     // Konstruktor bleibt unverändert
-    public WeatherDataSimulator(WeatherVisualizer visualizer, LocalDate startDate, int intervalMinutes) {
-        this.visualizer = visualizer;
-        this.random = new Random();
-        this.intervalMinutes = intervalMinutes;
+    public WeatherDataSimulator(LocalDate startDate, int intervalMinutes) {
+        this.visualizers = new LinkedList<>();
+
         this.lastTimestamp = LocalDateTime.of(startDate.getYear(), startDate.getMonth(), startDate.getDayOfMonth(),0,0);
         this.currentSeason = Season.getCurrentSeason(lastTimestamp);
+        this.condition = generateWeatherCondition(this.lastTimestamp ,this.currentSeason);
+
+        this.random = new Random();
+        this.intervalMinutes = intervalMinutes;
+
+        this.season = Season.getCurrentSeason(lastTimestamp);
+        this.temperature = getInitialTemperatureForSeason(season);
+
+        this.rainPropability = calculateRainProbability(this.condition, this.season, this.temperature);
+
         this.lastTemperature = getInitialTemperatureForSeason(currentSeason);
         startWeatherDataSimulation();
+    }
+
+    public void registerObserver(WeatherDataObserver observer) {
+        this.visualizers.add(observer);
+    }
+
+    public void removeObserver(WeatherDataObserver observer) {
+        this.visualizers.remove(observer);
+    }
+
+    private void notifyObserver() {
+        for (WeatherDataObserver observer : visualizers) {
+            CurrentWeatherData weatherData = new CurrentWeatherData(this.temperature, this.rainPropability, this.condition, this.lastTimestamp);
+            observer.update(weatherData);
+        }
+    }
+
+    public List<WeatherDataObserver> getVisualizers() {
+        return visualizers;
     }
 
     private double getInitialTemperatureForSeason(Season season) {
@@ -130,8 +166,7 @@ public class WeatherDataSimulator {
             @Override
             public void handle(long now) {
                 if (now - lastUpdate >= 2_000_000_000L) {
-                    WeatherData currentWeather = generateRealisticWeatherData();
-                    visualizer.updateWeatherVisualization(currentWeather);
+                    notifyObserver();
                     lastUpdate = now;
                 }
             }
@@ -142,48 +177,48 @@ public class WeatherDataSimulator {
     private WeatherData generateRealisticWeatherData() {
         // Restliche Implementierung bleibt unverändert
         LocalDateTime newTimestamp = lastTimestamp.plusMinutes(intervalMinutes);
-        Season newSeason = Season.getCurrentSeason(newTimestamp);
+        this.season = Season.getCurrentSeason(newTimestamp);
 
-        WeatherCondition newCondition = generateWeatherCondition(newTimestamp, newSeason);
+        this.condition = generateWeatherCondition(newTimestamp, this.season);
 
-        double temperatureChange = calculateTemperatureChange(newCondition, newTimestamp, newSeason);
-        double newTemperature = lastTemperature + temperatureChange;
+        double temperatureChange = calculateTemperatureChange(this.condition, newTimestamp, this.season);
+        this.temperature = lastTemperature + temperatureChange;
 
         // Temperatur nach Saisonbereichen beschränken
-        switch (newSeason) {
+        switch (this.season) {
             case WINTER:
-                newTemperature = Math.max(-15, Math.min(15, newTemperature));
+                this.temperature = Math.max(-15, Math.min(15, this.temperature));
                 break;
             case SUMMER:
-                newTemperature = Math.max(15, Math.min(45, newTemperature));
+                this.temperature = Math.max(15, Math.min(45, this.temperature));
                 break;
             case SPRING:
             case AUTUMN:
-                newTemperature = Math.max(5, Math.min(25, newTemperature));
+                this.temperature = Math.max(5, Math.min(25, this.temperature));
                 break;
         }
 
-        int rainProbability = calculateRainProbability(newCondition, newSeason, newTemperature);
+        this.rainPropability = calculateRainProbability(this.condition, this.season, this.temperature);
 
         // Restliche Wetterdaten-Logik bleibt unverändert
-        if (newCondition == WeatherCondition.SNOW && newTemperature > 2.0) {
-            newCondition = WeatherCondition.CLOUDY;
+        if (this.condition == WeatherCondition.SNOW && this.temperature > 2.0) {
+            this.condition = WeatherCondition.CLOUDY;
         }
 
-        if (newTemperature < 3.0) {
-            newCondition = (random.nextDouble() < 0.5) ? WeatherCondition.SNOW : WeatherCondition.CLOUDY;
+        if (this.temperature < 3.0) {
+            this.condition = (random.nextDouble() < 0.5) ? WeatherCondition.SNOW : WeatherCondition.CLOUDY;
         }
 
         CurrentWeatherData weatherData = new CurrentWeatherData(
-                newTemperature,
-                rainProbability,
-                newCondition,
+                this.temperature,
+                this.rainPropability,
+                this.condition,
                 newTimestamp
         );
 
-        lastTemperature = newTemperature;
+        lastTemperature = this.temperature;
         lastTimestamp = newTimestamp;
-        currentSeason = newSeason;
+        currentSeason = this.season;
 
         return weatherData;
     }
