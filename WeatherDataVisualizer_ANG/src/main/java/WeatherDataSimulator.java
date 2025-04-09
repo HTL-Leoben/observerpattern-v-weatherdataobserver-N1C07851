@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Random;
 
 public class WeatherDataSimulator {
-
     private List<WeatherDataObserver> visualizers;
+
     private Random random;
     private double lastTemperature;
     private int intervalMinutes;
@@ -57,14 +57,17 @@ public class WeatherDataSimulator {
         startWeatherDataSimulation();
     }
 
+    // Registriert einen neuen Observer in der Liste
     public void registerObserver(WeatherDataObserver observer) {
         this.visualizers.add(observer);
     }
 
+    // Entfernt einen Observer aus der Liste
     public void removeObserver(WeatherDataObserver observer) {
         this.visualizers.remove(observer);
     }
 
+    // Gibt die currentWeatherData an alle Observer weiter
     private void notifyObserver(WeatherData currentWeatherData) {
         for (WeatherDataObserver observer : visualizers) {
             observer.update(currentWeatherData);
@@ -75,6 +78,7 @@ public class WeatherDataSimulator {
         return visualizers;
     }
 
+    // Generiert die Anfangstemperatur für die einzelnen Jahreszeiten
     private double getInitialTemperatureForSeason(Season season) {
         switch (season) {
             case WINTER:
@@ -92,6 +96,7 @@ public class WeatherDataSimulator {
         }
     }
 
+    // Verändert anhand des Wetters, der Zeit und der Jahreszeit die Temperatur
     private double calculateTemperatureChange(WeatherCondition condition, LocalDateTime timestamp, Season season) {
         double baseChange = random.nextDouble() * 1.5 - 0.75;
         int hour = timestamp.getHour();

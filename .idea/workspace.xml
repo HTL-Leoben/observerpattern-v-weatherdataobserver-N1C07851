@@ -20,15 +20,35 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Application.JavaFx.executor": "Run",
     "Application.WeatherVisualizationApp.executor": "Run",
     "Maven.weather-visualization-app [org.apache.maven.plugins:maven-clean-plugin:3.2.0:clean].executor": "Run",
     "Maven.weather-visualization-app [org.apache.maven.plugins:maven-compiler-plugin:3.11.0:compile].executor": "Run",
     "Maven.weather-visualization-app [org.openjfx:javafx-maven-plugin:0.0.8:run].executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/nicoh/Desktop/Allgemeiner Ordner/Schule/3. Klasse/Pos/Github/observerpattern-v-weatherdataobserver-N1C07851"
+    "last_opened_file_path": "C:/Users/nicoh/Desktop/Allgemeiner Ordner/Schule/3. Klasse/Pos/Github/observerpattern-v-weatherdataobserver-N1C07851",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "settings.editor.selected.configurable": "reference.settings.project.maven.runner"
   }
 }]]></component>
+  <component name="RunManager">
+    <configuration name="JavaFx" type="Application" factoryName="Application" temporary="true">
+      <option name="MAIN_CLASS_NAME" value="WeatherVisualizationApp" />
+      <module name="weather-visualization-app" />
+      <option name="VM_PARAMETERS" value="--module-path C:\SDKs\javafx\javafx-sdk-21.0.6\lib --add-modules javafx.controls,javafx.fxml,javafx.graphics" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.JavaFx" />
+      </list>
+    </recent_temporary>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
